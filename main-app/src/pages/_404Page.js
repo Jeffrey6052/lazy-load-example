@@ -1,0 +1,15 @@
+
+import { Link } from "react-router-dom"
+
+const _404Page = (props) => {
+  return (
+    <div>
+      <h2>Nothing to see here!</h2>
+      <p>
+        <Link to="/">Go to the home page</Link>
+      </p>
+    </div>
+  )
+}
+
+export default _404Page
