@@ -6,4 +6,5 @@ export const renderLoading = () => {
   return loadingElement
 }
 
+export const emptyFunction = () => { }
 
