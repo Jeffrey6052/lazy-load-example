@@ -190,7 +190,7 @@ module.exports = function (webpackEnv) {
 
   const chunkLoadingGlobal = "webpackJsonp_main_app_" + uuidv4().replace(/-/g, '')
 
-  return {
+  const webpackConfig = {
     target: ['browserslist'],
     // Webpack noise constrained to errors and warnings
     stats: 'errors-warnings',
@@ -758,4 +758,8 @@ module.exports = function (webpackEnv) {
     // our own hints via the FileSizeReporter
     performance: false,
   };
+
+  // console.log("webpackConfig", webpackConfig)
+
+  return webpackConfig
 };

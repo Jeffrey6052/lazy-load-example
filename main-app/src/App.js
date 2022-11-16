@@ -11,6 +11,7 @@ const AboutPage = React.lazy(() => import("./pages/AboutPage"))
 const EditorPage = React.lazy(() => import("./pages/EditorPage"))
 
 const App = () => {
+  
   return (
     <div className="App">
       <Routes>
