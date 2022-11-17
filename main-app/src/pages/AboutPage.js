@@ -32,7 +32,7 @@ const AboutPage = (props) => {
         </div>
 
         <div style={{ marginTop: 10 }}>
-          {/* <Icon type={"SettingFilled"} /> */}
+          <Icon type={"SettingFilled"} linkTo={"/editor?x=1"} />
         </div>
       </div>
     )
