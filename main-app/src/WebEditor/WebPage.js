@@ -27,7 +27,7 @@ const WebPage = (props) => {
     asyncFn()
 
     return () => { }
-  }, [setDependenciesLoaded])
+  }, [props.dependencies])
 
   if (!dependenciesLoaded) return renderLoading()
 

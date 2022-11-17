@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { Routes, Route } from "react-router-dom"
 
 import './App.css'
@@ -11,7 +11,6 @@ const AboutPage = React.lazy(() => import("./pages/AboutPage"))
 const EditorPage = React.lazy(() => import("./pages/EditorPage"))
 
 const App = () => {
-  
   return (
     <div className="App">
       <Routes>

@@ -1,21 +1,48 @@
 
+import { useState, useLayoutEffect } from "react"
 import loadjs from "loadjs"
+
+import { emptyFunction } from "@/utils"
 
 // 异步加载页面
 const AboutPage = (props) => {
 
-  loadjs([
-    "https://cdn.bootcdn.net/ajax/libs/axios/0.24.0/axios.js",
-    "https://momentjs.com/downloads/moment.min.js"
-  ], () => {
-    console.log("loadjs finish!")
-    console.log("axios", window.axios)
-    console.log("moment", window.moment)
-  })
+  const [pkg, setPkg] = useState(null)
+
+  useLayoutEffect(() => {
+    window.JowoPkg.import("http://localhost:5000/dist/main.js", (pkg) => {
+      setPkg(pkg)
+    })
+
+    return emptyFunction
+  }, [])
+
+  const renderPkgComponents = () => {
+    if (!pkg) return null
+
+    const { Background, Icon } = pkg.components
+
+    // console.log("Background", Background)
+    // console.log("Icon", Icon)
+
+    return (
+      <div>
+        <div style={{ marginTop: 10 }}>
+          <Background backgroundColor={"yellow"} />
+        </div>
+
+        <div style={{ marginTop: 10 }}>
+          <Icon type={"SettingFilled"} />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div>
       <p>This is About Page.</p>
+
+      {renderPkgComponents()}
     </div>
   )
 }

@@ -17,7 +17,7 @@ const packOutput = {
 if (window.JowoPkg) {
   const currentScript = document.currentScript
   const currentScriptUrl = currentScript.getAttribute('src')
-  window.JowoPkg.load(currentScriptUrl, packOutput)
+  window.JowoPkg.set(currentScriptUrl, packOutput)
 }
 
 

@@ -188,6 +188,7 @@ module.exports = function (webpackEnv) {
     return loaders;
   };
 
+
   const chunkLoadingGlobal = "webpackJsonp_main_app_" + uuidv4().replace(/-/g, '')
 
   const webpackConfig = {

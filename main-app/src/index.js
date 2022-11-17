@@ -1,19 +1,23 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from "react-router-dom"
-import './index.css';
-import App from './App';
+import React from "react"
+import ReactDOM from 'react-dom'
+import * as ReactRouterDOM from "react-router-dom"
 
-import reportWebVitals from './reportWebVitals';
+import './index.css'
+import App from './App'
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+import "@/system/JowoPkg"
+
+// 共享基础库，后续将会由动态加载进来的组件共同使用, 利用webpack的externals功能
+window.React = React
+window.ReactDOM = ReactDOM
+window.ReactRouterDOM = ReactRouterDOM
+
+const { BrowserRouter } = ReactRouterDOM
+
+const root = ReactDOM.createRoot(document.getElementById('root'))
+
 root.render(
   <BrowserRouter>
     <App />
   </BrowserRouter>
-);
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-// reportWebVitals(console.log);
+)

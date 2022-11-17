@@ -179,6 +179,28 @@ module.exports = function (webpackEnv) {
     return loaders;
   };
 
+  const externalsMap = {
+    'react': 'React',
+    'react-dom': 'ReactDOM',
+    'react-router-dom': 'ReactRouterDOM'
+  }
+
+  const customExternalsFunction = (context, packageName, callback) => {
+    var externalName = externalsMap[packageName]
+    if (externalName) {
+      return callback(null, externalName);
+    } else {
+      return callback();
+      // var materialUIMatched = /@material-ui\/core\/(.+)/g.exec(packageName)
+      // if (materialUIMatched) {
+      //   const name = materialUIMatched[1]
+      //   return callback(null, 'MaterialUI.' + name);
+      // } else {
+      //   return callback();
+      // }
+    }
+  }
+
   return {
     target: ['browserslist'],
     // Webpack noise constrained to errors and warnings
@@ -237,6 +259,9 @@ module.exports = function (webpackEnv) {
     infrastructureLogging: {
       level: 'none',
     },
+    externals: [
+      customExternalsFunction
+    ],
     optimization: {
       minimize: isEnvProduction,
       minimizer: [
