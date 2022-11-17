@@ -3,7 +3,6 @@
 const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
-const resolve = require('resolve');
 const TerserPlugin = require('terser-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
@@ -181,11 +180,11 @@ module.exports = function (webpackEnv) {
 
   const externalsMap = {
     'react': 'React',
-    'react-dom': 'ReactDOM',
+    'react-dom/client': 'ReactDOM',
     'react-router-dom': 'ReactRouterDOM'
   }
 
-  const customExternalsFunction = (context, packageName, callback) => {
+  const customExternalsFunction = ({context, packageName}, callback) => {
     var externalName = externalsMap[packageName]
     if (externalName) {
       return callback(null, externalName);

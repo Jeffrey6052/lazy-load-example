@@ -14,7 +14,7 @@ function App() {
       </div>
 
       <div style={{ marginTop: 10 }}>
-        <Icon type={"LoadingOutlined"} />
+        <Icon type={"LinkOutlined"} linkTo="/abc" />
       </div>
     </div>
   );

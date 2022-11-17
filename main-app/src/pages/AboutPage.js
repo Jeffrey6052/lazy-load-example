@@ -28,11 +28,11 @@ const AboutPage = (props) => {
     return (
       <div>
         <div style={{ marginTop: 10 }}>
-          <Background backgroundColor={"yellow"} />
+          <Background backgroundColor={"red"} />
         </div>
 
         <div style={{ marginTop: 10 }}>
-          <Icon type={"SettingFilled"} />
+          {/* <Icon type={"SettingFilled"} /> */}
         </div>
       </div>
     )
