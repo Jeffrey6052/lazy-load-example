@@ -1,6 +1,19 @@
 
-// **** 本地代码库异步加载组件 ****
+// 登记组件
+const Components = {
+  "local.Input": () => import("@/WebEditor/components/Input"),
+  "local.Text": () => import("@/WebEditor/components/Text"),
+  "local.Image": () => import("@/WebEditor/components/Image")
+}
+
 export const loadLocalComponentModule = (componentKey) => {
+  const loadFn = Components[componentKey]
+  if (!loadFn) return null
+  return loadFn.call()
+}
+
+// **** 本地代码库异步加载组件 ****
+export const loadLocalComponentModule_old1 = (componentKey) => {
 
   if (componentKey === "local.Input") {
     return import("@/WebEditor/components/Input")
