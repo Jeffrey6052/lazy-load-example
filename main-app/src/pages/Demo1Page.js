@@ -9,7 +9,7 @@ const EditorPage = (props) => {
 
   return (
     <div>
-      <p>This is Editor Page.</p>
+      <h2>动态异步加载本地代码模块</h2>
       <div style={{ marginTop: 20 }}>
         <WebEditor />
       </div>

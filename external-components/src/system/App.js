@@ -1,10 +1,27 @@
 
-import './App.css';
+import { useState, useEffect } from "react"
 
-import Background from "../components/Background"
-import Icon from "../components/Icon"
+import { importAllComponents, importMultiComponents } from "./utils"
+
+import './App.css'
 
 function App() {
+
+  const [componentsLoaded, setComponentsLoaded] = useState(false)
+  const [components, setComponents] = useState({})
+
+  useEffect(() => {
+    // importMultiComponents(["Background", "Icon"])
+    importAllComponents().then((components) => {
+      setComponents(components)
+      setComponentsLoaded(true)
+    })
+  }, [])
+
+  if (!componentsLoaded) return "组件加载中..."
+
+  const { Background, Icon } = components
+
   return (
     <div className="App">
       <h1>组件开发 DEMO</h1>

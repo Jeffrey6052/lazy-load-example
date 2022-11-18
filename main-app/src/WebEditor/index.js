@@ -85,8 +85,6 @@ const WebEditor = (props) => {
     )
   }
 
-  console.log("rendering WebEditor")
-
   return (
     <div style={{ padding: 10, border: "1px solid rgba(0,0,0,0.15)" }}>
       <h2>WebEditor</h2>

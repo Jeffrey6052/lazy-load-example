@@ -7,23 +7,27 @@ import { emptyFunction } from "@/utils"
 // 异步加载页面
 const AboutPage = (props) => {
 
-  const [pkg, setPkg] = useState(null)
+  const [componentsLoaded, setComponentsLoaded] = useState(false)
+  const [components, setComponents] = useState({})
 
   useLayoutEffect(() => {
     window.JowoPkg.import("http://localhost:5000/dist/main.js", (pkg) => {
-      setPkg(pkg)
+      pkg.importAllComponents().then((components) => {
+        setComponents(components)
+        setComponentsLoaded(true)
+      })
     })
 
     return emptyFunction
   }, [])
 
-  const renderPkgComponents = () => {
-    if (!pkg) return null
+  // console.log("components", components)
 
-    const { Background, Icon } = pkg.components
+  const renderComponents = () => {
 
-    // console.log("Background", Background)
-    // console.log("Icon", Icon)
+    if (!componentsLoaded) return null
+
+    const { Background, Icon } = components
 
     return (
       <div>
@@ -40,9 +44,8 @@ const AboutPage = (props) => {
 
   return (
     <div>
-      <p>This is About Page.</p>
-
-      {renderPkgComponents()}
+      <h2>动态加载远程代码模块</h2>
+      {renderComponents()}
     </div>
   )
 }

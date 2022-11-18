@@ -7,8 +7,8 @@ import Layout from "./common/Layout"
 import IndexPage from "./pages/IndexPage"
 import { loadingElement } from "@/utils"
 
-const AboutPage = React.lazy(() => import("./pages/AboutPage"))
-const EditorPage = React.lazy(() => import("./pages/EditorPage"))
+const Demo1Page = React.lazy(() => import("./pages/Demo1Page"))
+const Demo2Page = React.lazy(() => import("./pages/Demo2Page"))
 
 const App = () => {
   return (
@@ -18,19 +18,19 @@ const App = () => {
           <Route index element={<IndexPage />} />
 
           <Route
-            path="/about"
+            path="/demo1"
             element={(
               <React.Suspense fallback={loadingElement} >
-                <AboutPage />
+                <Demo1Page />
               </React.Suspense>
             )}
           />
 
           <Route
-            path="/editor"
+            path="/demo2"
             element={(
               <React.Suspense fallback={loadingElement} >
-                <EditorPage />
+                <Demo2Page />
               </React.Suspense>
             )}
           />
