@@ -7,6 +7,5 @@ export default [
   "Input",
   "Text",
   "VueText",
-  "VueInput",
-  "ABC"
+  "VueInput"
 ]

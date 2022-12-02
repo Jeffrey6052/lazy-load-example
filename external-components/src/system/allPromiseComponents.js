@@ -4,8 +4,11 @@ import allComponentNames from "../index"
 
 const allPromiseComponents = {}
 allComponentNames.forEach((name) => {
-  const eagerComponent = import(/* webpackMode: "eager" */`../components/${name}`)
-  allPromiseComponents[name] = eagerComponent
+
+  const promiseComponent = import(/* webpackMode: "eager" */`../components/${name}`)
+  if (!promiseComponent) return
+
+  allPromiseComponents[name] = promiseComponent
 })
 
 // console.log("allPromiseComponents", allPromiseComponents)

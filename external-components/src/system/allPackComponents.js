@@ -1,4 +1,4 @@
-// 所有组件代码打包在同一个文件中, 该文件仅在打包流程中时使用
+// 所有组件代码打包在同一个文件中, 该文件仅在Webpack打包流程中会使用到
 
 import allComponentNames from "../index"
 
@@ -17,7 +17,5 @@ allComponentNames.forEach((name) => {
   if (!_module) return
   allPackComponents[name] = _module.default
 })
-
-// console.log("allPackComponents", allPackComponents)
 
 export default allPackComponents
