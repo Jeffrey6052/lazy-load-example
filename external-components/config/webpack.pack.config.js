@@ -4,19 +4,21 @@ const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
 const getCSSModuleLocalIdent = require('react-dev-utils/getCSSModuleLocalIdent');
-
 const paths = require('./paths');
 const modules = require('./modules');
 const getClientEnvironment = require('./env');
 const ModuleNotFoundPlugin = require('react-dev-utils/ModuleNotFoundPlugin');
 
 const CleanWebpackPlugin = require('clean-webpack-plugin')
-const ZipPlugin = require('zip-webpack-plugin');
+const FileManagerPlugin = require('filemanager-webpack-plugin')
 const CopyPlugin = require("copy-webpack-plugin");
+const VeauryVuePlugin = require('veaury/webpack/VeauryVuePlugin');
+
+const { v4: uuidv4 } = require('uuid');
+
+const { transformComponentsManifestJSON } = require("../scripts/utils")
 
 const createEnvironmentHash = require('./webpack/persistentCache/createEnvironmentHash');
 
@@ -36,36 +38,8 @@ const babelRuntimeRegenerator = require.resolve('@babel/runtime/regenerator', {
   paths: [babelRuntimeEntry],
 });
 
-const imageInlineSizeLimit = parseInt(
-  process.env.IMAGE_INLINE_SIZE_LIMIT || '10000'
-);
-
 // Check if TypeScript is setup
 const useTypeScript = fs.existsSync(paths.appTsConfig);
-
-// Check if Tailwind config exists
-const useTailwind = fs.existsSync(
-  path.join(paths.appPath, 'tailwind.config.js')
-);
-
-// style files regexes
-const cssRegex = /\.css$/;
-const cssModuleRegex = /\.module\.css$/;
-const sassRegex = /\.(scss|sass)$/;
-const sassModuleRegex = /\.module\.(scss|sass)$/;
-
-const hasJsxRuntime = (() => {
-  if (process.env.DISABLE_NEW_JSX_TRANSFORM === 'true') {
-    return false;
-  }
-
-  try {
-    require.resolve('react/jsx-runtime');
-    return true;
-  } catch (e) {
-    return false;
-  }
-})();
 
 // This is the production and development configuration.
 // It is focused on developer experience, fast rebuilds, and a minimal bundle.
@@ -86,18 +60,34 @@ module.exports = function (webpackEnv) {
 
   const shouldUseReactRefresh = env.raw.FAST_REFRESH;
 
+  // Check if Tailwind config exists
+  const useTailwind = fs.existsSync(
+    path.join(paths.appPath, 'tailwind.config.js')
+  );
+
+  // style files regexes
+  const cssRegex = /\.css$/;
+  const cssModuleRegex = /\.module\.css$/;
+  const sassRegex = /\.(scss|sass)$/;
+  const sassModuleRegex = /\.module\.(scss|sass)$/;
+
+  const hasJsxRuntime = (() => {
+    if (process.env.DISABLE_NEW_JSX_TRANSFORM === 'true') {
+      return false;
+    }
+
+    try {
+      require.resolve('react/jsx-runtime');
+      return true;
+    } catch (e) {
+      return false;
+    }
+  })();
+
   // common function to get style loaders
   const getStyleLoaders = (cssOptions, preProcessor) => {
     const loaders = [
       isEnvDevelopment && require.resolve('style-loader'),
-      isEnvProduction && {
-        loader: MiniCssExtractPlugin.loader,
-        // css is located in `static/css`, use '../../' to locate index.html folder
-        // in production `paths.publicUrlOrPath` can be a relative path
-        options: paths.publicUrlOrPath.startsWith('.')
-          ? { publicPath: '../../' }
-          : {},
-      },
       {
         loader: require.resolve('css-loader'),
         options: cssOptions,
@@ -168,7 +158,9 @@ module.exports = function (webpackEnv) {
     return loaders;
   };
 
-  return {
+  const chunkLoadingGlobal = "webpackJsonp_components_" + uuidv4().replace(/-/g, '')
+
+  const webpackConfig = {
     target: ['browserslist'],
     // Webpack noise constrained to errors and warnings
     stats: 'errors-warnings',
@@ -182,7 +174,10 @@ module.exports = function (webpackEnv) {
       : isEnvDevelopment && 'cheap-module-source-map',
     // These are the "entry points" to our application.
     // This means they will be the "root" imports that are included in JS bundle.
-    entry: paths.packIndexJs,
+    entry: {
+      components: paths.oldPackIndexJs,
+      components_v2: paths.packIndexJs
+    },
     output: {
       // The dist folder.
       path: paths.appDist,
@@ -201,6 +196,7 @@ module.exports = function (webpackEnv) {
       // It requires a trailing slash, or the file assets will get an incorrect path.
       // We inferred the "public path" (such as / or /my-project) from homepage.
       publicPath: "auto",
+      chunkLoadingGlobal: chunkLoadingGlobal,
       // Point sourcemap entries to original disk location (format as URL on Windows)
       devtoolModuleFilenameTemplate: isEnvProduction
         ? info =>
@@ -228,15 +224,23 @@ module.exports = function (webpackEnv) {
     },
     externalsType: "var",
     externals: {
-      "react": "React",
-      "react-dom/client": "ReactDOM",
-      "react-router-dom": "ReactRouterDOM"
+      'react': 'React',
+      'react-dom': 'ReactDOM',
+      'react-router-dom': 'ReactRouterDOM',
+      'react-router': 'ReactRouterDOM',
+      'tinycolor2': 'tinycolor',
+      'antd': 'antd',
+      'moment': 'moment',
+      'lodash': '_',
+      'echarts': 'echarts',
+      'axios': 'axios'
     },
     optimization: {
       minimize: isEnvProduction,
       minimizer: [
         // This is only used in production mode
         new TerserPlugin({
+          extractComments: false,
           terserOptions: {
             parse: {
               // We want terser to parse ecma 8 code. However, we don't want it
@@ -274,9 +278,7 @@ module.exports = function (webpackEnv) {
               ascii_only: true,
             },
           },
-        }),
-        // This is only used in production mode
-        new CssMinimizerPlugin(),
+        })
       ],
     },
     resolve: {
@@ -297,7 +299,7 @@ module.exports = function (webpackEnv) {
         .map(ext => `.${ext}`)
         .filter(ext => useTypeScript || !ext.includes('ts')),
       alias: {
-        '@': path.resolve(__dirname, '../src'),
+        '@': path.join(paths.appPath, 'src'),
         // Support React Native Web
         // https://www.smashingmagazine.com/2016/08/a-glimpse-into-the-future-with-react-native-for-web/
         'react-native': 'react-native-web',
@@ -327,13 +329,6 @@ module.exports = function (webpackEnv) {
     module: {
       strictExportPresence: true,
       rules: [
-        // Handle node_modules packages that contain sourcemaps
-        shouldUseSourceMap && {
-          enforce: 'pre',
-          exclude: /@babel(?:\/|\\{1,2})runtime/,
-          test: /\.(js|mjs|jsx|ts|tsx|css)$/,
-          loader: require.resolve('source-map-loader'),
-        },
         {
           // "oneOf" will traverse all following loaders until one will
           // match the requirements. When no loader matches it will fall
@@ -347,7 +342,7 @@ module.exports = function (webpackEnv) {
               mimetype: 'image/avif',
               parser: {
                 dataUrlCondition: {
-                  maxSize: imageInlineSizeLimit,
+                  maxSize: Infinity,
                 },
               },
             },
@@ -359,7 +354,7 @@ module.exports = function (webpackEnv) {
               type: 'asset',
               parser: {
                 dataUrlCondition: {
-                  maxSize: imageInlineSizeLimit,
+                  maxSize: Infinity,
                 },
               },
             },
@@ -548,7 +543,7 @@ module.exports = function (webpackEnv) {
             // Make sure to add the new loader(s) before the "file" loader.
           ],
         },
-      ].filter(Boolean),
+      ].filter(Boolean)
     },
     plugins: [
       // This gives some necessary context to module not found errors, such as
@@ -565,15 +560,49 @@ module.exports = function (webpackEnv) {
         root: path.resolve(__dirname, '../')
       }),
 
+      new VeauryVuePlugin({
+        babelLoader: {
+          // Set all vue files and js files in the 'abc' directory to support vue type jsx
+          include(filename) {
+            // ignore node_modules
+            if (filename.match(/[/\\]node_modules[\\/$]+/)) return
+            // pass all vue file
+            if (filename.match(/\.(vue|vue\.js)$/i)) {
+              return filename
+            }
+          },
+          // exclude() {}
+        }
+      }),
+
       new CopyPlugin([
         {
-          from: path.resolve(__dirname, "../public/static"),
+          from: path.resolve(__dirname, '../public/static'),
           to: "static",
         }
       ]),
 
-      new ZipPlugin({
-        filename: 'dist.zip'
+      new CopyPlugin([
+        {
+          from: path.resolve(__dirname, '../src/index.js'),
+          transform: (content, path) => transformComponentsManifestJSON([
+            'src/components'
+          ]),
+          to: "manifest.json"
+        }
+      ]),
+
+      new FileManagerPlugin({
+        events: {
+          onEnd: {
+            archive: [
+              {
+                source: path.resolve(__dirname, '../dist'),
+                destination: path.resolve(__dirname, '../dist/dist.zip')
+              }
+            ]
+          }
+        }
       })
 
     ].filter(Boolean),
@@ -581,4 +610,6 @@ module.exports = function (webpackEnv) {
     // our own hints via the FileSizeReporter
     performance: false,
   };
+
+  return webpackConfig
 };

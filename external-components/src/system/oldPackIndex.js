@@ -1,21 +1,18 @@
 
+import allPackComponents from "./allPackComponents"
+
+console.log("allPackComponents", allPackComponents)
+
 import {
   getConfig,
   updateConfig,
-  getAllComponentNames,
-  importOneComponent,
-  importMultiComponents,
-  importAllComponents
 } from "./utils"
 
+// 旧版使用的是AMD格式, 组件是一次性全部加载
 const packOutput = {
   getConfig,
   updateConfig,
-  getAllComponentNames,
-  importOneComponent,
-  importMultiComponents,
-  importAllComponents,
-  default: {} // 兼容旧版格式（仅结构兼容，让前端运行不出错，实际并不能加载到组件）
+  default: allPackComponents
 }
 
 // 支持Var, YongPkg, AMD方式加载

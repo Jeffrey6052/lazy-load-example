@@ -1,5 +1,12 @@
 
+// 在此处登记组件名称
+
 export default [
-  "Background",
-  "Icon"
+  "Icon",
+  "Image",
+  "Input",
+  "Text",
+  "VueText",
+  "VueInput",
+  "ABC"
 ]

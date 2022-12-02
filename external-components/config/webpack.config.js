@@ -8,7 +8,6 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin');
 const InlineChunkHtmlPlugin = require('react-dev-utils/InlineChunkHtmlPlugin');
 const TerserPlugin = require('terser-webpack-plugin');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const { WebpackManifestPlugin } = require('webpack-manifest-plugin');
 const InterpolateHtmlPlugin = require('react-dev-utils/InterpolateHtmlPlugin');
@@ -24,6 +23,7 @@ const ForkTsCheckerWebpackPlugin =
     ? require('react-dev-utils/ForkTsCheckerWarningWebpackPlugin')
     : require('react-dev-utils/ForkTsCheckerWebpackPlugin');
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
+const VeauryVuePlugin = require('veaury/webpack/VeauryVuePlugin');
 
 const createEnvironmentHash = require('./webpack/persistentCache/createEnvironmentHash');
 
@@ -46,10 +46,6 @@ const babelRuntimeRegenerator = require.resolve('@babel/runtime/regenerator', {
 // Some apps do not need the benefits of saving a web request, so not inlining the chunk
 // makes for a smoother build process.
 const shouldInlineRuntimeChunk = process.env.INLINE_RUNTIME_CHUNK !== 'false';
-
-const imageInlineSizeLimit = parseInt(
-  process.env.IMAGE_INLINE_SIZE_LIMIT || '10000'
-);
 
 // Check if TypeScript is setup
 const useTypeScript = fs.existsSync(paths.appTsConfig);
@@ -81,6 +77,7 @@ const hasJsxRuntime = (() => {
   }
 })();
 
+
 // This is the production and development configuration.
 // It is focused on developer experience, fast rebuilds, and a minimal bundle.
 module.exports = function (webpackEnv) {
@@ -104,14 +101,6 @@ module.exports = function (webpackEnv) {
   const getStyleLoaders = (cssOptions, preProcessor) => {
     const loaders = [
       isEnvDevelopment && require.resolve('style-loader'),
-      isEnvProduction && {
-        loader: MiniCssExtractPlugin.loader,
-        // css is located in `static/css`, use '../../' to locate index.html folder
-        // in production `paths.publicUrlOrPath` can be a relative path
-        options: paths.publicUrlOrPath.startsWith('.')
-          ? { publicPath: '../../' }
-          : {},
-      },
       {
         loader: require.resolve('css-loader'),
         options: cssOptions,
@@ -182,7 +171,7 @@ module.exports = function (webpackEnv) {
     return loaders;
   };
 
-  return {
+  const webpackConfig = {
     target: ['browserslist'],
     // Webpack noise constrained to errors and warnings
     stats: 'errors-warnings',
@@ -240,6 +229,18 @@ module.exports = function (webpackEnv) {
     },
     infrastructureLogging: {
       level: 'none',
+    },
+    externals: {
+      'react': 'React',
+      'react-dom': 'ReactDOM',
+      'react-router-dom': 'ReactRouterDOM',
+      'react-router': 'ReactRouterDOM',
+      'tinycolor2': 'tinycolor',
+      'antd': 'antd',
+      'moment': 'moment',
+      'lodash': '_',
+      'echarts': 'echarts',
+      'axios': 'axios'
     },
     optimization: {
       minimize: isEnvProduction,
@@ -306,7 +307,7 @@ module.exports = function (webpackEnv) {
         .map(ext => `.${ext}`)
         .filter(ext => useTypeScript || !ext.includes('ts')),
       alias: {
-        '@': path.resolve(__dirname, '../src'),
+        '@': path.join(paths.appPath, 'src'),
         // Support React Native Web
         // https://www.smashingmagazine.com/2016/08/a-glimpse-into-the-future-with-react-native-for-web/
         'react-native': 'react-native-web',
@@ -336,13 +337,6 @@ module.exports = function (webpackEnv) {
     module: {
       strictExportPresence: true,
       rules: [
-        // Handle node_modules packages that contain sourcemaps
-        shouldUseSourceMap && {
-          enforce: 'pre',
-          exclude: /@babel(?:\/|\\{1,2})runtime/,
-          test: /\.(js|mjs|jsx|ts|tsx|css)$/,
-          loader: require.resolve('source-map-loader'),
-        },
         {
           // "oneOf" will traverse all following loaders until one will
           // match the requirements. When no loader matches it will fall
@@ -356,7 +350,7 @@ module.exports = function (webpackEnv) {
               mimetype: 'image/avif',
               parser: {
                 dataUrlCondition: {
-                  maxSize: imageInlineSizeLimit,
+                  maxSize: Infinity,
                 },
               },
             },
@@ -368,7 +362,7 @@ module.exports = function (webpackEnv) {
               type: 'asset',
               parser: {
                 dataUrlCondition: {
-                  maxSize: imageInlineSizeLimit,
+                  maxSize: Infinity,
                 },
               },
             },
@@ -560,6 +554,22 @@ module.exports = function (webpackEnv) {
       ].filter(Boolean),
     },
     plugins: [
+
+      new VeauryVuePlugin({
+        babelLoader: {
+          // Set all vue files and js files in the 'abc' directory to support vue type jsx
+          include(filename) {
+            // ignore node_modules
+            if (filename.match(/[/\\]node_modules[\\/$]+/)) return
+            // pass all vue file
+            if (filename.match(/\.(vue|vue\.js)$/i)) {
+              return filename
+            }
+          },
+          // exclude() {}
+        }
+      }),
+
       // Generates an `index.html` file with the <script> injected.
       new HtmlWebpackPlugin(
         Object.assign(
@@ -618,13 +628,6 @@ module.exports = function (webpackEnv) {
       // a plugin that prints an error when you attempt to do this.
       // See https://github.com/facebook/create-react-app/issues/240
       isEnvDevelopment && new CaseSensitivePathsPlugin(),
-      isEnvProduction &&
-      new MiniCssExtractPlugin({
-        // Options similar to the same options in webpackOptions.output
-        // both options are optional
-        filename: 'static/css/[name].[contenthash:8].css',
-        chunkFilename: 'static/css/[name].[contenthash:8].chunk.css',
-      }),
       // Generate an asset manifest file with the following content:
       // - "files" key: Mapping of all asset filenames to their corresponding
       //   output file so that tools can pick it up without having to parse
@@ -724,4 +727,6 @@ module.exports = function (webpackEnv) {
     // our own hints via the FileSizeReporter
     performance: false,
   };
+
+  return webpackConfig
 };
